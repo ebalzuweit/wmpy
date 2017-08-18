@@ -1,0 +1,25 @@
+{
+    "DisplayPadding": [56, 56, -56, -56],
+    "WindowMargin": [6, 6, -6, -6],
+    "WindowSwapOverlapThreshold": 0.3,
+    "DisplaySwapOverlapThreshold": 0.5,
+    "DisplayMoveTimout": 0.1,
+    "IgnoredClassNames": [
+        "ApplicationFrameWindow",
+        "TaskManagerWindow"
+    ],
+    "IgnoredWindowTitles": [
+
+    ],
+    "SpecialMargins": {
+        "Chrome_WidgetWin_1": ["(- Google Chrome|— Visual Studio Code)", [-7, 0, 7, 7]],
+        "CabinetWClass": ["", [-7, 0, 7, 7]],
+        "ApolloRuntimeContentWindow": ["Pyxel Edit", [-7, 0, 7, 7]],
+        "UnityContainerWndClass": ["Unity", [-7, 0, 7, 7]],
+        "UnrealWindow": ["- Unreal Editor", [-7, -7, 7, 7]],
+        "SunAwtFrame": ["Android Studio", [-7, 0, 7, 7]],
+        "CefBrowserWindow": ["Minecraft Launcher", [-7, 0, 7, 7]],
+        "LWJGL": ["", [-7, 0, 7, 7]],
+        "QWidget": ["", [-7, 0, 7, 7]]
+    }
+}
