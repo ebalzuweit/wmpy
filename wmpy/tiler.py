@@ -2,6 +2,10 @@
 import re
 import win32gui
 import win32api
+
+from win32con import MOUSEEVENTF_LEFTUP
+from win32con import MOUSEEVENTF_ABSOLUTE
+
 import wmpy.config as config
 
 # return True if two display_size overlap
@@ -73,6 +77,14 @@ class Tiler(object):
             return
         region_a = a.region
         region_b = b.region
+
+        # simulate a mouse release to stop dragging the window
+        try:
+            x, y = win32api.GetCursorPos()
+            win32api.mouse_event(MOUSEEVENTF_ABSOLUTE + MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+        except win32api.error:
+            print('error faking drag release during window swap')
+
         self.__move_window_to_region(a, region_b)
         self.__move_window_to_region(b, region_a)
 

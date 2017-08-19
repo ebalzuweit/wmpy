@@ -31,6 +31,8 @@ import wmpy.config as config
 class WindowManager(object):
 
     def __init__(self):
+        self.lastWindowSwap = 0
+
         monitors = Monitor.get_displays()
         self.tilers = []
         for monitor in monitors:
@@ -50,10 +52,10 @@ class WindowManager(object):
                 return t
         return None
 
-    def print_event(self, hwnd):
+    def print_event(self, hwnd, dwmsEventTime):
         print(hwnd)
 
-    def on_create_object(self, hwnd):
+    def on_create_object(self, hwnd, dwmsEventTime):
         # this is so dirty, but can't get anything else to work :/
         for t in self.tilers:
             retile = False
@@ -74,7 +76,7 @@ class WindowManager(object):
             if retile:
                 t.tile_windows()
 
-    def on_destroy_object(self, hwnd):
+    def on_destroy_object(self, hwnd, dwmsEventTime):
         for t in self.tilers:
             if t.contains_window_by_handle(hwnd):
                 if t.remove_window_by_handle(hwnd):
@@ -82,7 +84,7 @@ class WindowManager(object):
                 else:
                     print('Error removing window from tiler', win32gui.GetWindowText(hwnd), win32gui.GetClassName(hwnd))
 
-    def on_location_change(self, hwnd):
+    def on_location_change(self, hwnd, dwmsEventTime):
         for t in self.tilers:
             if t.contains_window_by_handle(hwnd):
                 window = t.get_window_from_handle(hwnd)
@@ -92,13 +94,14 @@ class WindowManager(object):
                         # swap displays
                         self.__swap_displays(t, hwnd)
                         return
-                    else:
+                    elif dwmsEventTime - self.lastWindowSwap > config.WINDOW_SWAP_TIMEOUT():
                         # moved on current monitor
                         for w in t.windows:
                             if w != window and check_overlap(w.display_size, window.display_size):
                                 area = overlap_area(w.display_size, window.display_size)
                                 if area / window.display_area >= config.WINDOW_SWAP_OVERLAP_THRESHOLD():
                                     # swap windows
+                                    self.lastWindowSwap = dwmsEventTime
                                     t.swap_windows(window, w)
                                     break
                         return
@@ -152,7 +155,7 @@ class WindowManager(object):
         def callback(hWinEventHook, event, hwnd, idObject, idChild, dwEventThread, dwmsEventTime):
             func = MESSAGE_MAP.get(event)
             if func is not None:
-                func(hwnd)
+                func(hwnd, dwmsEventTime)
 
         self.WinEventProc = WinEventProcType(callback)
 

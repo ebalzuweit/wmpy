@@ -22,6 +22,9 @@ def WINDOW_MARGIN():
 def WINDOW_SWAP_OVERLAP_THRESHOLD():
     return data["WindowSwapOverlapThreshold"]
 
+def WINDOW_SWAP_TIMEOUT():
+    return data["WindowSwapTimeout"]
+
 def DISPLAY_SWAP_OVERLAP_THRESHOLD():
     return data["DisplaySwapOverlapThreshold"]
 

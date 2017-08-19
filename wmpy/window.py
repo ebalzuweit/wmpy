@@ -25,6 +25,7 @@ class Window(object):
 
     def __init__(self, handle):
         self.handle = handle
+        self.is_decorated = True
 
     def __eq__(self, other):
         return int(self.handle) == int(other.handle)
@@ -123,7 +124,7 @@ class Window(object):
     def should_manage(self, monitor_display_size):
         if win32gui.IsWindowVisible(self.handle) and not win32gui.IsIconic(self.handle):
             style_value = win32gui.GetWindowLong(self.handle, GWL_STYLE)
-            if style_value & WS_MAXIMIZEBOX:
+            if style_value & WS_SIZEBOX:
                 return True
             ex_style_value = win32gui.GetWindowLong(self.handle, GWL_EXSTYLE)
         return False
@@ -157,6 +158,35 @@ class Window(object):
             return True
         except win32gui.error:
             return False
+
+    def enable_decoration(self):
+        if self.is_decorated:
+            return True
+        try:
+            style = win32gui.GetWindowLong(self.handle, GWL_STYLE)
+            style += WS_CAPTION
+            win32gui.SetWindowLong(self.handle, GWL_STYLE, style)
+            self.is_decorated = True
+            self.update()
+            return True
+        except win32gui.error:
+            print('error adding decoration')
+            return False
+
+    def disable_decoration(self):
+        if not self.is_decorated:
+            return True
+        try:
+            style = win32gui.GetWindowLong(self.handle, GWL_STYLE)
+            style -= WS_CAPTION
+            win32gui.SetWindowLong(self.handle, GWL_STYLE, style)
+            self.is_decorated = False
+            self.update()
+            return True
+        except win32gui.error:
+            print('error removing decoration')
+            return False
+        
 
     @property
     def display_area(self):

@@ -31,12 +31,14 @@ def get_monitor_descriptor(monitor):
     )
 
 def get_monitor_info(monitor):
-    return str(monitor.handle)
+    return str(int(monitor.handle))
 
 def get_window_descriptor(window):
     return window.title
 
 def get_window_info(window):
+    print(window)
+    window.print_window_styles()
     return "{0} [{1}]".format(window.classname, window.handle)
 
 class wmpyTaskBar(TaskBarIcon):
@@ -69,19 +71,46 @@ class wmpyTaskBar(TaskBarIcon):
         self.displayMap = {}
         self.windowMap = {}
         for tiler in self.wm.tilers:
-            sm = Menu()
-            # Windows
+            display_submenu = Menu()
+
+            # display info
+            displayInfoID = NewId()
+            self.Bind(EVT_MENU, self.display_clicked, id=displayInfoID)
+            self.displayMap[displayInfoID] = tiler.monitor
+
+            display_submenu.Append(displayInfoID, 'Get Info')
+
+            # Windows submenus
             for window in tiler.windows:
+                window_submenu = Menu()
+
+                windowInfoID = NewId()
+                self.Bind(EVT_MENU, self.window_clicked, id=windowInfoID)
+                self.windowMap[windowInfoID] = window
+
+                window_submenu.Append(windowInfoID, 'Get Info')
+
+                toggleDecorationID = NewId()
+                self.Bind(EVT_MENU, self.toggle_decoration, id=toggleDecorationID)
+                self.windowMap[toggleDecorationID] = window
+
+                window_submenu.Append(
+                    toggleDecorationID,
+                    '{0} Decoration'.format('Disable' if window.is_decorated else 'Enable')
+                )
+
                 windowID = NewId()
                 self.Bind(EVT_MENU, self.window_clicked, id=windowID)
                 self.windowMap[windowID] = window
 
-                sm.Append(windowID, get_window_descriptor(window))
+                display_submenu.Append(windowID, get_window_descriptor(window), window_submenu)
+
+            # display submenu
             displayID = NewId()
             self.Bind(EVT_MENU, self.display_clicked, id=displayID)
             self.displayMap[displayID] = tiler.monitor
 
-            menu.Append(displayID, get_monitor_descriptor(tiler.monitor), sm)
+            menu.Append(displayID, get_monitor_descriptor(tiler.monitor), display_submenu)
         # Separator
         menu.AppendSeparator()
         # Exit
@@ -93,6 +122,15 @@ class wmpyTaskBar(TaskBarIcon):
         icon = Icon()
         icon.LoadFile(path)
         self.SetIcon(icon, TRAY_TOOLTIP)
+
+    def toggle_decoration(self, event):
+        window = self.windowMap[event.GetId()]
+        if window.is_decorated:
+            if not window.disable_decoration():
+                print('failed to disable decoration')
+        else:
+            if not window.enable_decoration():
+                print('failed to enable decoration')
 
     def display_clicked(self, event):
         # when they click on a display
