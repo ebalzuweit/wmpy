@@ -29,6 +29,7 @@ class Tiler(object):
         self.start_positions = monitor.get_window_positions()
         self.root = None
         self.windows = []
+        self.swapping = False
 
         for window in self.start_positions.keys():
             self.add_window(window)
@@ -38,6 +39,7 @@ class Tiler(object):
         if not self.valid_window(window):
             return False
         self.windows.append(window)
+        window.tiler = self
         if window not in self.start_positions.keys():
             self.start_positions[window] = window.display_size
         return True
@@ -45,6 +47,7 @@ class Tiler(object):
     def remove_window(self, window):
         if window in self.windows:
             self.windows.remove(window)
+            window.tiler = None
             return True
         return False
 
@@ -73,8 +76,9 @@ class Tiler(object):
         return any([w.handle == handle for w in self.windows])
 
     def swap_windows(self, a, b):
-        if a not in self.windows or b not in self.windows:
+        if a not in self.windows or b not in self.windows or a.is_floating() or b.is_floating() or self.swapping:
             return
+        print('swapping {0} and {1}'.format(a.title[:30], b.title[:30]))
         region_a = a.region
         region_b = b.region
 
@@ -85,12 +89,16 @@ class Tiler(object):
         except win32api.error:
             print('error faking drag release during window swap')
 
+        self.swapping = True
         self.__move_window_to_region(a, region_b)
         self.__move_window_to_region(b, region_a)
+        self.swapping = False
 
     def tile_windows(self):
+        if self.swapping:
+            return
         region = add_margin(self.monitor.display_size, config.DISPLAY_PADDING())
-        self.__tile_area(region, self.windows)
+        self.__tile_area(region, [w for w in self.windows if not w.is_floating()])
 
     def __move_window_to_region(self, window, region):
         # save given region for window swapping
@@ -152,6 +160,9 @@ class Tiler(object):
     def restore_positions(self, positions):
         """Restores all windows to the given positions"""
         for window, position in positions.items():
+            result = window.set_floating(False)
+            if not result:
+                print('error setting window to non-floating')
             if window in self.windows:
                 window.move_to(position)
    

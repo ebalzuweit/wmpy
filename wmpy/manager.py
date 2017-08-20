@@ -99,12 +99,14 @@ class WindowManager(object):
                         for w in t.windows:
                             if w != window and check_overlap(w.display_size, window.display_size):
                                 area = overlap_area(w.display_size, window.display_size)
-                                if area / window.display_area >= config.WINDOW_SWAP_OVERLAP_THRESHOLD():
+                                if area / window.display_area >= config.WINDOW_SWAP_OVERLAP_THRESHOLD() or area / w.display_area >= config.WINDOW_SWAP_OVERLAP_THRESHOLD():
                                     # swap windows
                                     self.lastWindowSwap = dwmsEventTime
                                     t.swap_windows(window, w)
                                     break
                         return
+                    else:
+                        t.tile_windows()
                 else:
                     # no overlap, swap displays
                     self.__swap_displays(t, hwnd)

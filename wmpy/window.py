@@ -26,6 +26,7 @@ class Window(object):
     def __init__(self, handle):
         self.handle = handle
         self.is_decorated = True
+        self.floating = False
 
     def __eq__(self, other):
         return int(self.handle) == int(other.handle)
@@ -186,6 +187,29 @@ class Window(object):
         except win32gui.error:
             print('error removing decoration')
             return False
+
+    def is_floating(self):
+        return self.floating
+
+    def set_floating(self, value):
+        if self.floating == value:
+            return True
+        try:
+            left, top, right, bottom = self.display_size
+            win32gui.SetWindowPos(
+                self.handle,
+                HWND_TOPMOST if value else HWND_NOTOPMOST,
+                left,
+                top,
+                right - left,
+                bottom - top,
+                0
+            )
+            self.floating = value
+            return True
+        except win32gui.error:
+            print('error (no)topmosting window')
+        return False
         
 
     @property
@@ -203,14 +227,8 @@ class Window(object):
     @property
     def title(self):
         try:
-            return win32gui.GetWindowText(self.handle)
-            try:
-                title = title.encode('utf-8')
-                title = title.decode('utf-8')
-            except UnicodeEncodeError:
-                title = "Couldn't encode title!"
-            finally:
-                return title
+            title = win32gui.GetWindowText(self.handle).encode('cp850', errors='replace').decode('cp850')
+            return title
         except win32gui.error:
             return None
 

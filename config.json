@@ -1,8 +1,8 @@
 {
     "DisplayPadding": [56, 56, -56, -56],
     "WindowMargin": [6, 6, -6, -6],
-    "WindowSwapOverlapThreshold": 0.3,
-    "WindowSwapTimeout": 10,
+    "WindowSwapOverlapThreshold": 0.4,
+    "WindowSwapTimeout": 150,
     "DisplaySwapOverlapThreshold": 0.5,
     "DisplayMoveTimout": 0.1,
     "IgnoredClassNames": [

@@ -90,6 +90,15 @@ class wmpyTaskBar(TaskBarIcon):
 
                 window_submenu.Append(windowInfoID, 'Get Info')
 
+                floatID = NewId()
+                self.Bind(EVT_MENU, self.float_clicked, id=floatID)
+                self.windowMap[floatID] = window
+
+                window_submenu.Append(
+                    floatID,
+                    '{0} Floating'.format('Disable' if window.is_floating() else 'Enable')
+                )
+
                 toggleDecorationID = NewId()
                 self.Bind(EVT_MENU, self.toggle_decoration, id=toggleDecorationID)
                 self.windowMap[toggleDecorationID] = window
@@ -122,6 +131,12 @@ class wmpyTaskBar(TaskBarIcon):
         icon = Icon()
         icon.LoadFile(path)
         self.SetIcon(icon, TRAY_TOOLTIP)
+
+    def float_clicked(self, event):
+        window = self.windowMap[event.GetId()]
+        result = window.set_floating(not window.is_floating())
+        if result:
+            window.tiler.tile_windows()
 
     def toggle_decoration(self, event):
         window = self.windowMap[event.GetId()]
