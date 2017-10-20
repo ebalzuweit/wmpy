@@ -125,7 +125,7 @@ class Window(object):
     def should_manage(self, monitor_display_size):
         if win32gui.IsWindowVisible(self.handle) and not win32gui.IsIconic(self.handle):
             style_value = win32gui.GetWindowLong(self.handle, GWL_STYLE)
-            if style_value & WS_SIZEBOX:
+            if style_value & WS_SIZEBOX and not style_value & WS_MAXIMIZE:
                 return True
             ex_style_value = win32gui.GetWindowLong(self.handle, GWL_EXSTYLE)
         return False
