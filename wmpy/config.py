@@ -39,3 +39,8 @@ def IGNORED_WINDOW_TITLES():
 
 def SPECIAL_MARGINS():
     return data["SpecialMargins"]
+
+def GET_RULES(classname):
+    if classname in data["Rules"]:
+        return data["Rules"][classname]
+    return None

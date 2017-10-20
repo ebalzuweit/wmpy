@@ -7,7 +7,8 @@
     "DisplayMoveTimout": 0.1,
     "IgnoredClassNames": [
         "ApplicationFrameWindow",
-        "TaskManagerWindow"
+        "TaskManagerWindow",
+        "Qt5QWindowIcon"
     ],
     "IgnoredWindowTitles": [
 
@@ -22,5 +23,12 @@
         "CefBrowserWindow": ["Minecraft Launcher", [-7, 0, 7, 7]],
         "LWJGL": ["", [-7, 0, 7, 7]],
         "QWidget": ["", [-7, 0, 7, 7]]
+    },
+    "Rules": {
+        "QWidget": {
+            "regex": "VLC",
+            "position": [2052, 1142, 480, 270],
+            "floating": true
+        }
     }
 }

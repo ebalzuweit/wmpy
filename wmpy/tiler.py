@@ -42,6 +42,18 @@ class Tiler(object):
         window.tiler = self
         if window not in self.start_positions.keys():
             self.start_positions[window] = window.display_size
+
+            rules = config.GET_RULES(window.classname)
+            if rules is not None and re.search(rules["regex"], window.title) is not None:
+                if "floating" in rules:
+                    window.set_floating(rules["floating"])
+                if "decorated" in rules:
+                    if bool(rules["decorated"]):
+                        window.enable_decoration()
+                    else:
+                        window.disable_decoration()
+                if "position" in rules:
+                    window.move_to(tuple(rules["position"]))
         return True
 
     def remove_window(self, window):
@@ -105,11 +117,14 @@ class Tiler(object):
         window.region = region
         # apply margins and move
         region = add_margin(region, config.WINDOW_MARGIN())
+
+        # special regions
         if window.classname in config.SPECIAL_MARGINS():
             # check the regex
             special_margin = config.SPECIAL_MARGINS()[window.classname]
             if re.search(special_margin[0], window.title) is not None:
                 region = add_margin(region, special_margin[1])
+
         window.move_to(region)
 
     def __tile_area(self, area, windows):
@@ -160,6 +175,9 @@ class Tiler(object):
     def restore_positions(self, positions):
         """Restores all windows to the given positions"""
         for window, position in positions.items():
+            # result = window.enable_decoration()
+            # if not result:
+            #     print('error setting window decoration')
             result = window.set_floating(False)
             if not result:
                 print('error setting window to non-floating')
