@@ -159,7 +159,7 @@ class wmpyTaskBar(TaskBarIcon):
 
     def on_clicked(self, event):
         # when taskbar icon is clicked
-        pass
+        self.on_refresh(event)
 
     def on_refresh(self, event):
         config.load_config()
