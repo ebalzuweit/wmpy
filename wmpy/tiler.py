@@ -183,4 +183,11 @@ class Tiler(object):
                 print('error setting window to non-floating')
             if window in self.windows:
                 window.move_to(position)
+
+    def restore_window_position(self, positions, window):
+        result = window.set_floating(False)
+        if not result:
+            print('error setting window to non-floating')
+        if window in self.windows:
+            window.move_to(positions[window])
    

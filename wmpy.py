@@ -145,6 +145,8 @@ class wmpyTaskBar(TaskBarIcon):
     def toggle_managed(self, event):
         window = self.windowMap[event.GetId()]
         window.set_managed(not window.do_not_manage)
+        if window.do_not_manage:
+            window.tiler.restore_window_position(window.tiler.start_positions, window)
         window.tiler.tile_windows()
 
     def float_clicked(self, event):
