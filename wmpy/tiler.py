@@ -110,7 +110,7 @@ class Tiler(object):
         if self.swapping:
             return
         region = add_margin(self.monitor.display_size, config.DISPLAY_PADDING())
-        self.__tile_area(region, [w for w in self.windows if not w.is_floating()])
+        self.__tile_area(region, [w for w in self.windows if not w.is_floating() and not w.do_not_manage])
 
     def __move_window_to_region(self, window, region):
         # save given region for window swapping

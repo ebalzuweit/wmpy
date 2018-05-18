@@ -84,12 +84,21 @@ class wmpyTaskBar(TaskBarIcon):
             for window in tiler.windows:
                 window_submenu = Menu()
 
+                # get info
                 windowInfoID = NewId()
                 self.Bind(EVT_MENU, self.window_clicked, id=windowInfoID)
                 self.windowMap[windowInfoID] = window
 
                 window_submenu.Append(windowInfoID, 'Get Info')
 
+                # toggle management
+                toggleManageID = NewId()
+                self.Bind(EVT_MENU, self.toggle_managed, id=toggleManageID)
+                self.windowMap[toggleManageID] = window
+
+                window_submenu.Append(toggleManageID, '{0} managed'.format('Enable' if window.do_not_manage else 'Disable'))
+
+                # toggle floating
                 floatID = NewId()
                 self.Bind(EVT_MENU, self.float_clicked, id=floatID)
                 self.windowMap[floatID] = window
@@ -99,6 +108,7 @@ class wmpyTaskBar(TaskBarIcon):
                     '{0} Floating'.format('Disable' if window.is_floating() else 'Enable')
                 )
 
+                # toggle decoration
                 toggleDecorationID = NewId()
                 self.Bind(EVT_MENU, self.toggle_decoration, id=toggleDecorationID)
                 self.windowMap[toggleDecorationID] = window
@@ -131,6 +141,11 @@ class wmpyTaskBar(TaskBarIcon):
         icon = Icon()
         icon.LoadFile(path)
         self.SetIcon(icon, TRAY_TOOLTIP)
+
+    def toggle_managed(self, event):
+        window = self.windowMap[event.GetId()]
+        window.set_managed(not window.do_not_manage)
+        window.tiler.tile_windows()
 
     def float_clicked(self, event):
         window = self.windowMap[event.GetId()]

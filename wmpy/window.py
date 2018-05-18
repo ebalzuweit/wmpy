@@ -27,6 +27,7 @@ class Window(object):
         self.handle = handle
         self.is_decorated = True
         self.floating = False
+        self.do_not_manage = False
 
     def __eq__(self, other):
         return int(self.handle) == int(other.handle)
@@ -122,7 +123,15 @@ class Window(object):
                 s2 = style[1][i + 1]
                 print('{0:32} : {1:d}    {2:32} : {3:d}'.format(s1[0], bool(value & s1[1]), s2[0], bool(value & s2[1])))
 
+    def set_managed(self, should_manage):
+        if self.do_not_manage == should_manage:
+            return
+        self.do_not_manage = should_manage
+
+
     def should_manage(self, monitor_display_size):
+        if self.do_not_manage:
+            return False
         if win32gui.IsWindowVisible(self.handle) and not win32gui.IsIconic(self.handle):
             style_value = win32gui.GetWindowLong(self.handle, GWL_STYLE)
             if style_value & WS_SIZEBOX and not style_value & WS_MAXIMIZE:
