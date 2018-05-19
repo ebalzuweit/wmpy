@@ -116,7 +116,7 @@ class WindowManager(object):
         tiler.remove_window_by_handle(window_hwnd)
         time.sleep(config.DISPLAY_MOVE_TIMEOUT())
         tiler.tile_windows()
-        self.on_create_object(window_hwnd)
+        self.on_create_object(window_hwnd, None)
 
     def start(self):
         for tiler in self.tilers:
