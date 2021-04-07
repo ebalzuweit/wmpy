@@ -16,6 +16,7 @@
     "DisplaySwapOverlapThreshold": 0.5,
     "DisplayMoveTimeout": 0.1,
     "IgnoredClassNames": [
+        "ApplicationFrameWindow",
         "TaskManagerWindow"
     ],
     "IgnoredWindowTitles": [],
