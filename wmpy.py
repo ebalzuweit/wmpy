@@ -1,19 +1,9 @@
 """Entry point for wmpy"""
 import ctypes
 import os
-
-from win32con import WM_QUIT
-from wx.adv import TaskBarIcon
-
-from wx import NewId
-from wx import MenuItem
-from wx import EVT_MENU
-from wx.adv import EVT_TASKBAR_LEFT_DOWN
-from wx import Menu
-from wx import BITMAP_TYPE_PNG
-from wx import Icon
-from wx import CallAfter
-from wx import App
+import win32con
+import wx
+import wx.adv
 
 from wmpy.manager import WindowManager
 from wmpy.window import Window
@@ -21,6 +11,7 @@ import wmpy.config as config
 
 TRAY_TOOLTIP = 'wmpy'
 TRAY_ICON_PATH = os.path.join(os.getcwd(), 'icon', 'icon.ico')
+
 
 def get_monitor_descriptor(monitor):
     left, top, right, bottom = monitor.display_resolution
@@ -30,149 +21,69 @@ def get_monitor_descriptor(monitor):
         primary=" [PRIMARY]" if monitor.is_main() else ""
     )
 
-def get_monitor_info(monitor):
-    return str(int(monitor.handle))
 
 def get_window_descriptor(window):
-    return window.title
+    TITLE_LIMIT = 42
+    label = window.title
+    if len(label) > TITLE_LIMIT:
+        label = label[:TITLE_LIMIT] + '...'
+    return label
 
-def get_window_info(window):
-    print(window)
-    window.print_window_styles()
-    return "{0} [{1}]".format(window.classname, window.handle)
 
-class wmpyTaskBar(TaskBarIcon):
+class wmpyTaskBar(wx.adv.TaskBarIcon):
     def __init__(self):
-        super(TaskBarIcon, self).__init__()
+        super(wx.adv.TaskBarIcon, self).__init__()
         self.set_icon(TRAY_ICON_PATH)
         self.start()
-        self.Bind(EVT_TASKBAR_LEFT_DOWN, self.on_clicked)
+        self.Bind(wx.adv.EVT_TASKBAR_LEFT_DOWN, self.on_clicked)
 
     def start(self):
         self.wm = WindowManager()
         self.thread_id = self.wm.start()
-    
+
     def CreatePopupMenu(self):
-        if not hasattr(self, 'exitID'):
-            self.refreshID = NewId()
-            self.exitID = NewId()
+        menu = wx.Menu()
 
-            self.Bind(EVT_MENU, self.on_refresh, id=self.refreshID)
-            self.Bind(EVT_MENU, self.on_exit, id=self.exitID)
-
-        menu = Menu()
-
-        # Refresh
-        refresh_item = MenuItem(menu, self.refreshID, 'Refresh')
-        menu.Append(refresh_item)
-        # Separator
+        # refresh
+        refresh_item = menu.Append(wx.NewIdRef(), 'Refresh')
+        self.Bind(wx.EVT_MENU, self.on_refresh, id=refresh_item.GetId())
         menu.AppendSeparator()
-        # Displays
-        self.displayMap = {}
+
+        # tilers
         self.windowMap = {}
         for tiler in self.wm.tilers:
-            display_submenu = Menu()
+            # submenu for each display tiler
+            tiler_submenu = wx.Menu()
+            label = get_monitor_descriptor(tiler.monitor)
+            menu.AppendSubMenu(tiler_submenu, label)
 
-            # display info
-            displayInfoID = NewId()
-            self.Bind(EVT_MENU, self.display_clicked, id=displayInfoID)
-            self.displayMap[displayInfoID] = tiler.monitor
-
-            display_submenu.Append(displayInfoID, 'Get Info')
-
-            # Windows submenus
+            # show windows under submenu, with check for floating
             for window in tiler.windows:
-                window_submenu = Menu()
+                label = get_window_descriptor(window)
+                window_item = tiler_submenu.AppendCheckItem(
+                    wx.NewIdRef(), label)
+                window_item.Check(window.is_floating())
+                self.Bind(wx.EVT_MENU, self.float_clicked,
+                          id=window_item.GetId())
+                self.windowMap[window_item.GetId()] = window
 
-                # get info
-                windowInfoID = NewId()
-                self.Bind(EVT_MENU, self.window_clicked, id=windowInfoID)
-                self.windowMap[windowInfoID] = window
-
-                window_submenu.Append(windowInfoID, 'Get Info')
-
-                # toggle management
-                toggleManageID = NewId()
-                self.Bind(EVT_MENU, self.toggle_managed, id=toggleManageID)
-                self.windowMap[toggleManageID] = window
-
-                window_submenu.Append(toggleManageID, '{0} managed'.format('Enable' if window.do_not_manage else 'Disable'))
-
-                # toggle floating
-                floatID = NewId()
-                self.Bind(EVT_MENU, self.float_clicked, id=floatID)
-                self.windowMap[floatID] = window
-
-                window_submenu.Append(
-                    floatID,
-                    '{0} Floating'.format('Disable' if window.is_floating() else 'Enable')
-                )
-
-                # toggle decoration
-                toggleDecorationID = NewId()
-                self.Bind(EVT_MENU, self.toggle_decoration, id=toggleDecorationID)
-                self.windowMap[toggleDecorationID] = window
-
-                window_submenu.Append(
-                    toggleDecorationID,
-                    '{0} Decoration'.format('Disable' if window.is_decorated else 'Enable')
-                )
-
-                windowID = NewId()
-                self.Bind(EVT_MENU, self.window_clicked, id=windowID)
-                self.windowMap[windowID] = window
-
-                display_submenu.Append(windowID, get_window_descriptor(window), window_submenu)
-
-            # display submenu
-            displayID = NewId()
-            self.Bind(EVT_MENU, self.display_clicked, id=displayID)
-            self.displayMap[displayID] = tiler.monitor
-
-            menu.Append(displayID, get_monitor_descriptor(tiler.monitor), display_submenu)
-        # Separator
+        # exit
         menu.AppendSeparator()
-        # Exit
-        menu.Append(self.exitID, 'Exit')
+        exitItem = menu.Append(wx.ID_EXIT, 'Exit')
+        self.Bind(wx.EVT_MENU, self.on_exit, exitItem)
 
         return menu
 
     def set_icon(self, path):
-        icon = Icon()
+        icon = wx.Icon()
         icon.LoadFile(path)
         self.SetIcon(icon, TRAY_TOOLTIP)
-
-    def toggle_managed(self, event):
-        window = self.windowMap[event.GetId()]
-        window.set_managed(not window.do_not_manage)
-        if window.do_not_manage:
-            window.tiler.restore_window_position(window.tiler.start_positions, window)
-        window.tiler.tile_windows()
 
     def float_clicked(self, event):
         window = self.windowMap[event.GetId()]
         result = window.set_floating(not window.is_floating())
         if result:
             window.tiler.tile_windows()
-
-    def toggle_decoration(self, event):
-        window = self.windowMap[event.GetId()]
-        if window.is_decorated:
-            if not window.disable_decoration():
-                print('failed to disable decoration')
-        else:
-            if not window.enable_decoration():
-                print('failed to enable decoration')
-
-    def display_clicked(self, event):
-        # when they click on a display
-        monitor = self.displayMap[event.GetId()]
-        self.ShowBalloon(get_monitor_descriptor(monitor), get_monitor_info(monitor))
-
-    def window_clicked(self, event):
-        # when they click on a window
-        window = self.windowMap[event.GetId()]
-        self.ShowBalloon(get_window_descriptor(window), get_window_info(window))
 
     def on_clicked(self, event):
         # when taskbar icon is clicked
@@ -185,18 +96,20 @@ class wmpyTaskBar(TaskBarIcon):
         self.ShowBalloon('wmpy', 'Refreshed and Retiled!')
 
     def on_exit(self, event):
-        ctypes.windll.user32.PostThreadMessageW(self.thread_id, WM_QUIT, 0, 0)
+        ctypes.windll.user32.PostThreadMessageW(
+            self.thread_id, win32con.WM_QUIT, 0, 0)
 
         for tiler in self.wm.tilers:
             tiler.restore_positions(tiler.start_positions)
 
-        CallAfter(self.Destroy)
+        wx.CallAfter(self.Destroy)
 
 
 def main():
-    app = App()
-    wmpyTaskBar()
+    app = wx.App()
+    taskbar = wmpyTaskBar()
     app.MainLoop()
+
 
 if __name__ == '__main__':
     main()
