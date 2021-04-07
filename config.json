@@ -1,34 +1,24 @@
 {
-    "DisplayPadding": [56, 56, -56, -56],
-    "WindowMargin": [6, 6, -6, -6],
+    "DisplayPadding": [
+        12,
+        12,
+        -12,
+        -12
+    ],
+    "WindowMargin": [
+        6,
+        6,
+        -6,
+        -6
+    ],
     "WindowSwapOverlapThreshold": 0.4,
     "WindowSwapTimeout": 150,
     "DisplaySwapOverlapThreshold": 0.5,
     "DisplayMoveTimeout": 0.1,
     "IgnoredClassNames": [
-        "ApplicationFrameWindow",
-        "TaskManagerWindow",
-        "Qt5QWindowIcon"
+        "TaskManagerWindow"
     ],
-    "IgnoredWindowTitles": [
-
-    ],
-    "SpecialMargins": {
-        "Chrome_WidgetWin_1": ["(- Google Chrome|— Visual Studio Code)", [-7, 0, 7, 7]],
-        "CabinetWClass": ["", [-7, 0, 7, 7]],
-        "ApolloRuntimeContentWindow": ["Pyxel Edit", [-7, 0, 7, 7]],
-        "UnityContainerWndClass": ["Unity", [-7, 0, 7, 7]],
-        "UnrealWindow": ["- Unreal Editor", [-7, -7, 7, 7]],
-        "SunAwtFrame": ["Android Studio", [-7, 0, 7, 7]],
-        "CefBrowserWindow": ["Minecraft Launcher", [-7, 0, 7, 7]],
-        "LWJGL": ["", [-7, 0, 7, 7]],
-        "QWidget": ["", [-7, 0, 7, 7]]
-    },
-    "Rules": {
-        "QWidget": {
-            "regex": "VLC",
-            "position": [2052, 1142, 480, 270],
-            "floating": true
-        }
-    }
+    "IgnoredWindowTitles": [],
+    "SpecialMargins": {},
+    "Rules": {}
 }
