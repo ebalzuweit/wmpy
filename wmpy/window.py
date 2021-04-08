@@ -21,6 +21,7 @@ from win32con import *
 
 from wmpy.tiler import check_overlap, overlap_area
 
+
 class Window(object):
 
     def __init__(self, handle):
@@ -117,24 +118,25 @@ class Window(object):
             value = win32gui.GetWindowLong(self.handle, style[0])
             for i in range(0, len(style[1]), 2):
                 if i + 1 == len(style[1]):
-                    print('{0:32} : {1:d}'.format(style[1][i][0], bool(value & style[1][i][1])))
+                    print('{0:32} : {1:d}'.format(
+                        style[1][i][0], bool(value & style[1][i][1])))
                     continue
                 s1 = style[1][i]
                 s2 = style[1][i + 1]
-                print('{0:32} : {1:d}    {2:32} : {3:d}'.format(s1[0], bool(value & s1[1]), s2[0], bool(value & s2[1])))
+                print('{0:32} : {1:d}    {2:32} : {3:d}'.format(
+                    s1[0], bool(value & s1[1]), s2[0], bool(value & s2[1])))
 
     def set_managed(self, should_manage):
         if self.do_not_manage == should_manage:
             return
         self.do_not_manage = should_manage
 
-
     def should_manage(self, monitor_display_size):
         if self.do_not_manage:
             return False
         if win32gui.IsWindowVisible(self.handle) and not win32gui.IsIconic(self.handle):
             style_value = win32gui.GetWindowLong(self.handle, GWL_STYLE)
-            if style_value & WS_SIZEBOX and not style_value & WS_MAXIMIZE:
+            if style_value & WS_SIZEBOX and not style_value & WS_MAXIMIZE and not style_value & WS_POPUP:
                 return True
             ex_style_value = win32gui.GetWindowLong(self.handle, GWL_EXSTYLE)
         return False
@@ -219,7 +221,6 @@ class Window(object):
         except win32gui.error:
             print('error (no)topmosting window')
         return False
-        
 
     @property
     def display_area(self):
@@ -236,7 +237,8 @@ class Window(object):
     @property
     def title(self):
         try:
-            title = win32gui.GetWindowText(self.handle).encode('cp850', errors='replace').decode('cp850')
+            title = win32gui.GetWindowText(self.handle).encode(
+                'cp850', errors='replace').decode('cp850')
             return title
         except win32gui.error:
             return None
@@ -244,7 +246,7 @@ class Window(object):
     @property
     def classname(self):
         try:
-            return win32gui.GetClassName(self.handle) 
+            return win32gui.GetClassName(self.handle)
         except win32gui.error:
             return None
 
