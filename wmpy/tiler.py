@@ -8,18 +8,22 @@ from win32con import MOUSEEVENTF_ABSOLUTE
 
 import wmpy.config as config
 
-# return True if two display_size overlap
+
 def check_overlap(a, b):
+    """ return True if two display_size overlap """
     if a[0] >= b[2] or a[1] >= b[3] or a[2] <= b[0] or a[3] <= b[1]:
         return False
     return True
 
-# return area of overlap between two display_size
+
 def overlap_area(a, b):
+    """ return area of overlap between two display_size """
     return min(a[2] - b[0], b[2] - a[0]) * min(a[3] - b[1], b[3] - a[1])
+
 
 def add_margin(region, margin):
     return tuple(map(lambda x, y: x + y, region, margin))
+
 
 class Tiler(object):
     """Manages a BSP tree for all windows in a monitor"""
@@ -54,6 +58,9 @@ class Tiler(object):
                         window.disable_decoration()
                 if "position" in rules:
                     window.move_to(tuple(rules["position"]))
+
+        print("Added window: {0}".format(window))
+        window.print_window_styles()
         return True
 
     def remove_window(self, window):
@@ -97,7 +104,8 @@ class Tiler(object):
         # simulate a mouse release to stop dragging the window
         try:
             x, y = win32api.GetCursorPos()
-            win32api.mouse_event(MOUSEEVENTF_ABSOLUTE + MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+            win32api.mouse_event(MOUSEEVENTF_ABSOLUTE +
+                                 MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
         except win32api.error:
             print('error faking drag release during window swap')
 
@@ -109,8 +117,10 @@ class Tiler(object):
     def tile_windows(self):
         if self.swapping:
             return
-        region = add_margin(self.monitor.display_size, config.DISPLAY_PADDING())
-        self.__tile_area(region, [w for w in self.windows if not w.is_floating() and not w.do_not_manage])
+        region = add_margin(self.monitor.display_size,
+                            config.DISPLAY_PADDING())
+        self.__tile_area(
+            region, [w for w in self.windows if not w.is_floating() and not w.do_not_manage])
 
     def __move_window_to_region(self, window, region):
         # save given region for window swapping
@@ -134,11 +144,12 @@ class Tiler(object):
             # we've found a region for the window
             self.__move_window_to_region(windows[0], area)
             return
-        
+
         left, top, right, bottom = area
         width = right - left
         height = bottom - top
-        horizontal_split = True if width >= height else False
+        horizontal_split = True if width >= height * \
+            config.WINDOW_SPLIT_RATIO() else False
 
         width //= 2
         height //= 2
@@ -153,11 +164,13 @@ class Tiler(object):
                 (left, top + height, right, bottom)
             ]
         windows_by_region = [[], []]
-        sorted_windows = sorted(windows, key=lambda w: w.display_area, reverse=True)
+        sorted_windows = sorted(
+            windows, key=lambda w: w.display_area, reverse=True)
         for w in sorted_windows:
             if len(windows_by_region[0]) == len(windows_by_region[1]):
                 # tree is currently balanced, keep window in closest region
-                overlap = [overlap_area(w.display_size, r) if check_overlap(w.display_size, r) else 0 for r in regions]
+                overlap = [overlap_area(w.display_size, r) if check_overlap(
+                    w.display_size, r) else 0 for r in regions]
                 if overlap[0] >= overlap[1]:
                     windows_by_region[0].append(w)
                 else:
@@ -170,7 +183,6 @@ class Tiler(object):
                     windows_by_region[1].append(w)
         for i in range(2):
             self.__tile_area(regions[i], windows_by_region[i])
-                
 
     def restore_positions(self, positions):
         """Restores all windows to the given positions"""
@@ -190,4 +202,3 @@ class Tiler(object):
             print('error setting window to non-floating')
         if window in self.windows:
             window.move_to(positions[window])
-   

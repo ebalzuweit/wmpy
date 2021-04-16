@@ -11,6 +11,7 @@
         -6,
         -6
     ],
+    "WindowSplitRatio": 1.7,
     "WindowSwapOverlapThreshold": 0.4,
     "WindowSwapTimeout": 150,
     "DisplaySwapOverlapThreshold": 0.5,
