@@ -1,7 +1,7 @@
 cx-Freeze==6.4.2
 importlib-metadata==3.1.1
 numpy==1.19.4
-Pillow==8.1.1
+Pillow==9.0.1
 pywin32==300
 six==1.15.0
 wxPython==4.1.1
